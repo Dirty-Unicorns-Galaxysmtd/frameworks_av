@@ -299,7 +299,11 @@ public:
      * This includes the latency due to AudioTrack buffer size, AudioMixer (if any)
      * and audio hardware driver.
      */
+<<<<<<< HEAD
 #if defined(USE_OMX_COMPAT) || defined(QCOM_HARDWARE)
+=======
+#ifdef QCOM_HARDWARE
+>>>>>>> 23cdd2a... av: ifdef QCOM code
             uint32_t    latency() const;
 #else
             uint32_t    latency() const     { return mLatency; }

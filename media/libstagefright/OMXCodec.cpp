@@ -96,6 +96,14 @@ const static int64_t kBufferFilledEventTimeOutNs = 3000000000LL;
 // component in question is buggy or not.
 const static uint32_t kMaxColorFormatSupported = 1000;
 
+<<<<<<< HEAD
+=======
+#ifdef QCOM_LEGACY_OMX
+static const int QOMX_COLOR_FormatYUV420PackedSemiPlanar64x32Tile2m8ka = 0x7FA30C03;
+static const int OMX_QCOM_COLOR_FormatYVU420SemiPlanar = 0x7FA30C00;
+#endif
+
+>>>>>>> 23cdd2a... av: ifdef QCOM code
 #ifdef QCOM_HARDWARE
 #define FACTORY_CREATE(name) \
 static sp<MediaSource> Make##name(const sp<MediaSource> &source) { \
@@ -779,6 +787,11 @@ status_t OMXCodec::configureCodec(const sp<MetaData> &meta) {
             }
 
 #ifdef QCOM_HARDWARE
+<<<<<<< HEAD
+=======
+            ExtendedCodec::configureVideoDecoder(
+                    meta, mMIME, mOMX, mFlags, mNode, mComponentName);
+>>>>>>> 23cdd2a... av: ifdef QCOM code
             ExtendedCodec::configureFramePackingFormat(
                     meta, mOMX, mNode, mComponentName);
             ExtendedCodec::enableSmoothStreaming(
@@ -1723,8 +1736,24 @@ OMXCodec::OMXCodec(
       mLeftOverBuffer(NULL),
       mPaused(false),
       mNativeWindow(
+<<<<<<< HEAD
               (!strncmp(componentName, "OMX.google.", 11))
                         ? NULL : nativeWindow) {
+=======
+              (!strncmp(componentName, "OMX.google.", 11)
+              || !strcmp(componentName, "OMX.Nvidia.mpeg2v.decode")
+#ifdef QCOM_LEGACY_OMX
+              || !strncmp(componentName, "OMX.qcom",8)
+#endif
+              )
+#ifdef QCOM_HARDWARE
+                        ? NULL : nativeWindow),
+      mNumBFrames(0),
+      mInSmoothStreamingMode(false) {
+#else
+                        ? NULL : nativeWindow) {
+#endif
+>>>>>>> 23cdd2a... av: ifdef QCOM code
     mPortStatus[kPortIndexInput] = ENABLED;
     mPortStatus[kPortIndexOutput] = ENABLED;
 

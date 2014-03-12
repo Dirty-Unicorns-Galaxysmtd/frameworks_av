@@ -83,7 +83,11 @@ AudioFlinger::ThreadBase::TrackBase::TrackBase(
         mChannelMask(channelMask),
         mChannelCount(popcount(channelMask)),
 #ifdef QCOM_HARDWARE
+<<<<<<< HEAD
         mFrameSize((audio_is_linear_pcm(format) || audio_is_compress_voip_format(format)) ?
+=======
+        mFrameSize((audio_is_linear_pcm(format) || audio_is_supported_compressed(format)) ?
+>>>>>>> 23cdd2a... av: ifdef QCOM code
         ((flags & IAudioFlinger::TRACK_VOICE_COMMUNICATION)? mChannelCount * sizeof(int16_t) : mChannelCount * audio_bytes_per_sample(format)) : sizeof(int8_t)),
 #else
         mFrameSize(audio_is_linear_pcm(format) ?
@@ -389,12 +393,21 @@ AudioFlinger::PlaybackThread::Track::Track(
             int uid,
             IAudioFlinger::track_flags_t flags)
 #ifdef QCOM_HARDWARE
+<<<<<<< HEAD
       :   TrackBase(thread, client, sampleRate, format, channelMask, frameCount,
 	((audio_stream_type_t)streamType == AUDIO_STREAM_VOICE_CALL)? IAudioFlinger::TRACK_VOICE_COMMUNICATION:0x0,
         sharedBuffer, sessionId, uid, true /*isOut*/),
 #else
     :   TrackBase(thread, client, sampleRate, format, channelMask, frameCount, sharedBuffer,
             sessionId, uid, true /*isOut*/),
+=======
+    :   TrackBase(thread, client, sampleRate, format, channelMask, frameCount,
+     ((audio_stream_type_t)streamType == AUDIO_STREAM_VOICE_CALL)? IAudioFlinger::TRACK_VOICE_COMMUNICATION:0x0,
+     sharedBuffer, sessionId, true /*isOut*/),
+#else
+    :   TrackBase(thread, client, sampleRate, format, channelMask, frameCount, sharedBuffer,
+            sessionId, true /*isOut*/),
+>>>>>>> 23cdd2a... av: ifdef QCOM code
 #endif
     mFillingUpStatus(FS_INVALID),
     // mRetryCount initialized later when needed
@@ -1825,6 +1838,7 @@ AudioFlinger::RecordThread::RecordTrack::RecordTrack(
 #ifdef QCOM_HARDWARE
             uint32_t flags,
 #endif
+<<<<<<< HEAD
             int sessionId,
             int uid)
 #ifdef QCOM_HARDWARE
@@ -1833,6 +1847,15 @@ AudioFlinger::RecordThread::RecordTrack::RecordTrack(
 #else
     :   TrackBase(thread, client, sampleRate, format,
                   channelMask, frameCount, 0 /*sharedBuffer*/, sessionId, uid, false /*isOut*/),
+=======
+            int sessionId)
+#ifdef QCOM_HARDWARE
+    :   TrackBase(thread, client, sampleRate, format, channelMask, frameCount,
+        flags, 0 /*sharedBuffer*/, sessionId, false /*isOut*/),
+#else
+    :   TrackBase(thread, client, sampleRate, format,
+                  channelMask, frameCount, 0 /*sharedBuffer*/, sessionId, false /*isOut*/),
+>>>>>>> 23cdd2a... av: ifdef QCOM code
 #endif
         mOverflow(false)
 {

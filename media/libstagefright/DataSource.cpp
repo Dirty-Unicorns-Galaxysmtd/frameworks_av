@@ -156,6 +156,7 @@ void DataSource::RegisterSniffer_l(SnifferFunc func) {
 
 // static
 void DataSource::RegisterDefaultSniffers() {
+<<<<<<< HEAD
     Mutex::Autolock autoLock(gSnifferMutex);
     if (gSniffersRegistered) {
         return;
@@ -174,6 +175,25 @@ void DataSource::RegisterDefaultSniffers() {
     RegisterSniffer_l(SniffWVM);
 #ifdef QCOM_HARDWARE
     RegisterSniffer_l(ExtendedExtractor::Sniff);
+=======
+    RegisterSniffer(SniffMPEG4);
+    RegisterSniffer(SniffMatroska);
+    RegisterSniffer(SniffOgg);
+    RegisterSniffer(SniffWAV);
+    RegisterSniffer(SniffFLAC);
+    RegisterSniffer(SniffAMR);
+    RegisterSniffer(SniffMPEG2TS);
+    RegisterSniffer(SniffMP3);
+    RegisterSniffer(SniffAAC);
+    RegisterSniffer(SniffMPEG2PS);
+#ifdef QCOM_HARDWARE
+#ifdef QCOM_LEGACY_MMPARSER
+    ExtendedExtractor::RegisterSniffers();
+#else
+    RegisterSniffer(SniffWVM);
+    RegisterSniffer(ExtendedExtractor::Sniff);
+>>>>>>> 23cdd2a... av: ifdef QCOM code
+#endif
 #endif
 
     char value[PROPERTY_VALUE_MAX];

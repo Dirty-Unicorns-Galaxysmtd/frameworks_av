@@ -31,8 +31,12 @@ public:
 #ifdef QCOM_HARDWARE
                                 uint32_t flags,
 #endif
+<<<<<<< HEAD
                                 int sessionId,
                                 int uid);
+=======
+                                int sessionId);
+>>>>>>> 23cdd2a... av: ifdef QCOM code
     virtual             ~RecordTrack();
 
     virtual status_t    start(AudioSystem::sync_event_t event, int triggerSession);

@@ -4882,9 +4882,15 @@ sp<AudioFlinger::RecordThread::RecordTrack>  AudioFlinger::RecordThread::createR
 
         track = new RecordTrack(this, client, sampleRate,
 #ifdef QCOM_HARDWARE
+<<<<<<< HEAD
                       format, channelMask, frameCount, *flags, sessionId, uid);
 #else
                       format, channelMask, frameCount, sessionId, uid);
+=======
+                      format, channelMask, frameCount, *flags, sessionId);
+#else
+                      format, channelMask, frameCount, sessionId);
+>>>>>>> 23cdd2a... av: ifdef QCOM code
 #endif
 
         if (track->getCblk() == 0) {

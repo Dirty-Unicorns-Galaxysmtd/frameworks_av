@@ -2014,12 +2014,16 @@ status_t AudioTrack::dump(int fd, const Vector<String16>& args) const
 #ifdef QCOM_HARDWARE
     uint32_t afLatency = 0;
     AudioSystem::getLatency(mOutput, mStreamType, &afLatency);
+<<<<<<< HEAD
     if(0 != mSampleRate) {
         snprintf(buffer, 255, "  state(%d), latency (%d)\n", mState,
                 (mCblk == NULL) ? afLatency : (afLatency + (1000*mCblk->frameCount_) / mSampleRate));
     } else {
         snprintf(buffer, 255, "  state(%d), latency (%d)\n", mState, afLatency);
     }
+=======
+    snprintf(buffer, 255, "  state(%d), latency (%d)\n", mState, afLatency + (1000*mCblk->frameCount_) / mSampleRate);
+>>>>>>> 23cdd2a... av: ifdef QCOM code
 #else
     snprintf(buffer, 255, "  state(%d), latency (%d)\n", mState, mLatency);
 #endif

@@ -34,6 +34,13 @@
 #include <media/AudioParameter.h>
 #ifdef QCOM_HARDWARE
 #include <media/stagefright/ExtendedCodec.h>
+<<<<<<< HEAD
+=======
+#endif
+
+#ifdef ENABLE_AV_ENHANCEMENTS
+#include "QCMetaData.h"
+>>>>>>> 23cdd2a... av: ifdef QCOM code
 #endif
 
 namespace android {

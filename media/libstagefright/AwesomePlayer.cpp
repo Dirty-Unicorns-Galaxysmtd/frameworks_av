@@ -2360,8 +2360,17 @@ void AwesomePlayer::onVideoEvent() {
                     if(!(mFlags & AT_EOS)) logLate(timeUs,nowUs,latenessUs);
 #endif
                 }
+<<<<<<< HEAD
 
                 postVideoEvent_l(0);
+=======
+#ifdef QCOM_HARDWARE
+                int64_t eventDurationUs = mSystemTimeSource.getRealTimeUs() - eventStartTimeUs;
+                int64_t delayUs = mFrameDurationUs - eventDurationUs - latenessUs - earlyGapUs;
+                delayUs = delayUs > kDefaultEventDelayUs ? kDefaultEventDelayUs : delayUs;
+                postVideoEvent_l(delayUs > 0 ? delayUs : 0);
+#endif
+>>>>>>> 23cdd2a... av: ifdef QCOM code
                 return;
             }
         }
@@ -2429,13 +2438,17 @@ void AwesomePlayer::onVideoEvent() {
         modifyFlags(SEEK_PREVIEW, CLEAR);
         return;
     }
+<<<<<<< HEAD
 
+=======
+>>>>>>> 23cdd2a... av: ifdef QCOM code
 #ifdef QCOM_HARDWARE
     int64_t eventDurationUs = mSystemTimeSource.getRealTimeUs() - eventStartTimeUs;
     int64_t delayUs = mFrameDurationUs - eventDurationUs - latenessUs - earlyGapUs;
     delayUs = delayUs > kDefaultEventDelayUs ? kDefaultEventDelayUs : delayUs;
     postVideoEvent_l(delayUs > 0 ? delayUs : 0);
 #endif
+<<<<<<< HEAD
 
     /* get next frame time */
     if (wasSeeking == NO_SEEK) {
@@ -2473,6 +2486,8 @@ void AwesomePlayer::onVideoEvent() {
     }
 
     postVideoEvent_l();
+=======
+>>>>>>> 23cdd2a... av: ifdef QCOM code
 }
 
 void AwesomePlayer::postVideoEvent_l(int64_t delayUs) {
