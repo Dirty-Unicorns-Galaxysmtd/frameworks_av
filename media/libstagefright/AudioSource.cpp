@@ -369,15 +369,7 @@ status_t AudioSource::read(
                     ((int64_t)kAutoRampDurationUs * mSampleRate + 500000LL) / 1000000LL; //Need type casting
 
         int32_t autoRampStartFrames =
-<<<<<<< HEAD
                     ((int64_t)kAutoRampStartUs * mSampleRate + 500000LL) / 1000000LL; //Need type casting
-=======
-#ifdef QCOM_HARDWARE
-                        (mAutoRampStartUs * mSampleRate + 500000LL) / 1000000LL;
-#else
-                    (kAutoRampStartUs * mSampleRate + 500000LL) / 1000000LL;
-#endif
->>>>>>> 23cdd2a... av: ifdef QCOM code
 
         int32_t nFrames = mNumFramesReceived - autoRampStartFrames;
         rampVolume(nFrames, autoRampDurationFrames,
