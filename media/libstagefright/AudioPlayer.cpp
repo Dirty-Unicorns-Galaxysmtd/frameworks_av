@@ -112,7 +112,10 @@ status_t AudioPlayer::start(bool sourceAlreadyStarted) {
         mSeeking = false;
     }
 
-    mFirstBufferResult = mSource->read(&mFirstBuffer, &options);
+    do {
+        mFirstBufferResult = mSource->read(&mFirstBuffer, &options);
+    } while (mFirstBufferResult == -EAGAIN);
+
     if (mFirstBufferResult == INFO_FORMAT_CHANGED) {
         ALOGV("INFO_FORMAT_CHANGED!!!");
 
@@ -132,7 +135,7 @@ status_t AudioPlayer::start(bool sourceAlreadyStarted) {
     success = format->findInt32(kKeySampleRate, &mSampleRate);
     CHECK(success);
 
-    int32_t numChannels, channelMask;
+    int32_t numChannels, channelMask = 0;
     success = format->findInt32(kKeyChannelCount, &numChannels);
     CHECK(success);
 
@@ -141,6 +144,9 @@ status_t AudioPlayer::start(bool sourceAlreadyStarted) {
         ALOGI_IF(numChannels > 2,
                 "source format didn't specify channel mask, using (%d) channel order", numChannels);
         channelMask = CHANNEL_MASK_USE_CHANNEL_ORDER;
+    } else if (channelMask == 0) {
+        channelMask = audio_channel_out_mask_from_count(numChannels);
+        ALOGV("channel mask is zero,update from channel count %d", channelMask);
     }
 
     audio_format_t audioFormat = AUDIO_FORMAT_PCM_16_BIT;
@@ -453,7 +459,7 @@ size_t AudioPlayer::AudioSinkCallback(
         MediaPlayerBase::AudioSink::cb_event_t event) {
     AudioPlayer *me = (AudioPlayer *)cookie;
 
-#ifdef QCOM_HARDWARE
+#ifdef QCOM_DIRECTTRACK
     if (buffer == NULL) {
         //Not applicable for AudioPlayer
         ALOGE("This indicates the event underrun case for LPA/Tunnel");
@@ -790,16 +796,27 @@ int64_t AudioPlayer::getRealTimeUsLocked() const {
 #endif
 }
 
-int64_t AudioPlayer::getOutputPlayPositionUs_l() const
+int64_t AudioPlayer::getOutputPlayPositionUs_l()
 {
     uint32_t playedSamples = 0;
+    uint32_t sampleRate;
     if (mAudioSink != NULL) {
         mAudioSink->getPosition(&playedSamples);
+        sampleRate = mAudioSink->getSampleRate();
     } else {
         mAudioTrack->getPosition(&playedSamples);
+        sampleRate = mAudioTrack->getSampleRate();
+    }
+    if (sampleRate != 0) {
+        mSampleRate = sampleRate;
     }
 
-    const int64_t playedUs = (static_cast<int64_t>(playedSamples) * 1000000 ) / mSampleRate;
+    int64_t playedUs;
+    if (mSampleRate != 0) {
+        playedUs = (static_cast<int64_t>(playedSamples) * 1000000 ) / mSampleRate;
+    } else {
+        playedUs = 0;
+    }
 
     // HAL position is relative to the first buffer we sent at mStartPosUs
     const int64_t renderedDuration = mStartPosUs + playedUs;
@@ -839,7 +856,15 @@ bool AudioPlayer::getMediaTimeMapping(
     Mutex::Autolock autoLock(mLock);
 
     if (useOffload()) {
-        mPositionTimeRealUs = getOutputPlayPositionUs_l();
+        int64_t playPosition = 0;
+        if (mSeeking) {
+            playPosition = mSeekTimeUs;
+        } else {
+            playPosition = getOutputPlayPositionUs_l();
+        }
+        if(!mReachedEOS)
+            mPositionTimeRealUs = playPosition;
+        mPositionTimeMediaUs = mPositionTimeRealUs;
         *realtime_us = mPositionTimeRealUs;
         *mediatime_us = mPositionTimeRealUs;
     } else {

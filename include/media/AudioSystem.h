@@ -119,9 +119,6 @@ public:
         audio_channel_mask_t channelMask, size_t* buffSize);
 
     static status_t setVoiceVolume(float volume);
-#ifdef QCOM_FM_ENABLED
-    static status_t setFmVolume(float volume);
-#endif
 
     // return the number of audio frames written by AudioFlinger to audio HAL and
     // audio dsp to DAC since the output on which the specified stream is playing
@@ -153,7 +150,7 @@ public:
         INPUT_CLOSED,
         INPUT_CONFIG_CHANGED,
         STREAM_CONFIG_CHANGED,
-#ifdef QCOM_HARDWARE
+#ifdef QCOM_DIRECTTRACK
         EFFECT_CONFIG_CHANGED,
 #endif
         NUM_CONFIG_EVENTS

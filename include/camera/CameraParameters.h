@@ -77,6 +77,11 @@ public:
     void getPreviewSize(int *width, int *height) const;
     void getSupportedPreviewSizes(Vector<Size> &sizes) const;
 
+#ifdef HTC_CAMERA_HARDWARE
+    void getBrightnessLumaTargetSet(int *magic, int *sauce) const;
+    void getRawSize(int *magic, int *sauce) const;
+#endif
+
     // Set the dimensions in pixels to the given width and height
     // for video frames. The given width and height must be one
     // of the supported dimensions returned from
@@ -916,6 +921,8 @@ public:
     // other modes.
     static const char FOCUS_MODE_CONTINUOUS_PICTURE[];
 
+
+
     // Values for light special effects
     // Low-light enhancement mode
     static const char LIGHTFX_LOWLIGHT[];
@@ -939,6 +946,10 @@ public:
     static const char PANORAMA_MODE_NOT_INPROGRESS[];
     static const char PANORAMA_MODE_INPROGRESS[];
 #endif
+    // Oppo Find 7 additionnal parameters
+    static const char FOCUS_MODE_MANUAL_POSITION[];
+    static const char WHITE_BALANCE_MANUAL_CCT[];
+
     // Normal focus mode. Applications should call
     // CameraHardwareInterface.autoFocus to start the focus in this mode.
     static const char FOCUS_MODE_NORMAL[];

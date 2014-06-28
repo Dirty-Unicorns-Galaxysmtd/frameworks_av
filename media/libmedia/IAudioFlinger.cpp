@@ -71,14 +71,11 @@ enum {
     GET_EFFECT_DESCRIPTOR,
     CREATE_EFFECT,
     MOVE_EFFECTS,
-#ifdef QCOM_FM_ENABLED
-    SET_FM_VOLUME,
-#endif
     LOAD_HW_MODULE,
     GET_PRIMARY_OUTPUT_SAMPLING_RATE,
     GET_PRIMARY_OUTPUT_FRAME_COUNT,
     SET_LOW_RAM_DEVICE,
-#ifdef QCOM_HARDWARE
+#ifdef QCOM_DIRECTTRACK
     CREATE_DIRECT_TRACK,
 #endif
 };
@@ -152,7 +149,7 @@ public:
         return track;
     }
 
-#ifdef QCOM_HARDWARE
+#ifdef QCOM_DIRECTTRACK
     virtual sp<IDirectTrack> createDirectTrack(
                                 pid_t pid,
                                 uint32_t sampleRate,
@@ -754,17 +751,6 @@ public:
         return reply.readInt32();
     }
 
-#ifdef QCOM_FM_ENABLED
-    virtual status_t setFmVolume(float volume)
-    {
-        Parcel data, reply;
-        data.writeInterfaceToken(IAudioFlinger::getInterfaceDescriptor());
-        data.writeFloat(volume);
-        remote()->transact(SET_FM_VOLUME, data, &reply);
-        return reply.readInt32();
-    }
-#endif
-
     virtual audio_module_handle_t loadHwModule(const char *name)
     {
         Parcel data, reply;
@@ -846,7 +832,7 @@ status_t BnAudioFlinger::onTransact(
             reply->writeStrongBinder(track->asBinder());
             return NO_ERROR;
         } break;
-#ifdef QCOM_HARDWARE
+#ifdef QCOM_DIRECTTRACK
         case CREATE_DIRECT_TRACK: {
             CHECK_INTERFACE(IAudioFlinger, data, reply);
             pid_t pid = data.readInt32();
@@ -1188,14 +1174,6 @@ status_t BnAudioFlinger::onTransact(
             reply->writeInt32(moveEffects(session, srcOutput, dstOutput));
             return NO_ERROR;
         } break;
-#ifdef QCOM_FM_ENABLED
-        case SET_FM_VOLUME: {
-            CHECK_INTERFACE(IAudioFlinger, data, reply);
-            float volume = data.readFloat();
-            reply->writeInt32( setFmVolume(volume) );
-            return NO_ERROR;
-        } break;
-#endif
         case LOAD_HW_MODULE: {
             CHECK_INTERFACE(IAudioFlinger, data, reply);
             reply->writeInt32(loadHwModule(data.readCString()));
