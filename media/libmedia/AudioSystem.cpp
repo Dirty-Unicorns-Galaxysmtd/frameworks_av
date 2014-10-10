@@ -327,18 +327,20 @@ status_t AudioSystem::getLatency(audio_io_handle_t output,
                                  audio_stream_type_t streamType,
                                  uint32_t* latency)
 {
-#ifndef QCOM_DIRECTTRACK
+#ifdef QCOM_DIRECTTRACK
+    const sp<IAudioFlinger>& af = AudioSystem::get_audio_flinger();
+    if (af == 0) return PERMISSION_DENIED;
+    *latency = af->latency(output);
+#else
     OutputDescriptor *outputDesc;
 
     gLock.lock();
     outputDesc = AudioSystem::gOutputs.valueFor(output);
     if (outputDesc == NULL) {
         gLock.unlock();
-#endif
         const sp<IAudioFlinger>& af = AudioSystem::get_audio_flinger();
         if (af == 0) return PERMISSION_DENIED;
         *latency = af->latency(output);
-#ifndef QCOM_DIRECTTRACK
     } else {
         *latency = outputDesc->latency;
         gLock.unlock();
@@ -648,6 +650,11 @@ audio_io_handle_t AudioSystem::getOutput(audio_stream_type_t stream,
 {
     const sp<IAudioPolicyService>& aps = AudioSystem::get_audio_policy_service();
     if (aps == 0) return 0;
+
+    if (stream == AUDIO_STREAM_DEFAULT) {
+        stream = AUDIO_STREAM_MUSIC;
+    }
+
     return aps->getOutput(stream, samplingRate, format, channelMask, flags, offloadInfo);
 }
 
@@ -862,5 +869,14 @@ void AudioSystem::AudioPolicyServiceClient::binderDied(const wp<IBinder>& who) {
 
     ALOGW("AudioPolicyService server died!");
 }
+
+#ifdef USE_SAMSUNG_SEPARATEDSTREAM
+extern "C" bool _ZN7android11AudioSystem17isSeparatedStreamE19audio_stream_type_t(audio_stream_type_t stream)
+{
+    ALOGD("audio_stream_type_t: %d", stream);
+    ALOGD("isSeparatedStream: false");
+    return false;
+}
+#endif // USE_SAMSUNG_SEPARATEDSTREAM
 
 }; // namespace android

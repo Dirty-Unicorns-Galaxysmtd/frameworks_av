@@ -25,6 +25,8 @@
 #include <media/stagefright/MediaSource.h>
 #include <media/stagefright/MediaBuffer.h>
 
+#include "foundation/ABase.h"
+
 namespace android {
 // ----------------------------------------------------------------------------
 
@@ -227,8 +229,10 @@ private:
 
     Condition mMediaBuffersAvailableCondition;
 
+    bool mBuffersReleased;
+
     // Avoid copying and equating and default constructor
-    DISALLOW_IMPLICIT_CONSTRUCTORS(SurfaceMediaSource);
+    DISALLOW_EVIL_CONSTRUCTORS(SurfaceMediaSource);
 };
 
 // ----------------------------------------------------------------------------

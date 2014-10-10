@@ -52,9 +52,7 @@ private:
     static const int kPreInterpShift = kNumPhaseBits - kNumInterpBits;
 
     void init() {}
-#ifdef QCOM_HARDWARE
     void reset();
-#endif
     void resampleMono16(int32_t* out, size_t outFrameCount,
             AudioBufferProvider* provider);
     void resampleStereo16(int32_t* out, size_t outFrameCount,
@@ -297,7 +295,6 @@ void AudioResamplerOrder1::resample(int32_t* out, size_t outFrameCount,
     }
 }
 
-#ifdef QCOM_HARDWARE
 void AudioResamplerOrder1::reset() {
     mInputIndex = 0;
     mPhaseFraction = 0;
@@ -305,7 +302,6 @@ void AudioResamplerOrder1::reset() {
     mX0L = 0;
     mX0R = 0;
 }
-#endif
 
 void AudioResamplerOrder1::resampleStereo16(int32_t* out, size_t outFrameCount,
         AudioBufferProvider* provider) {
@@ -539,7 +535,7 @@ void AudioResamplerOrder1::AsmMono16Loop(int16_t *in, int32_t* maxOutPt, int32_t
         "   ldr r8, [sp, #" MO_PARAM5 " + 4]\n"     // out
         "   ldr r0, [sp, #" MO_PARAM5 " + 0]\n"     // &outputIndex
         "   ldr r0, [r0]\n"                         // outputIndex
-        "   add r8, r0, asl #2\n"                   // curOut
+        "   add r8, r8, r0, asl #2\n"               // curOut
         "   ldr r9, [sp, #" MO_PARAM5 " + 24]\n"    // phaseIncrement
         "   ldr r10, [sp, #" MO_PARAM5 " + 12]\n"   // vl
         "   ldr r11, [sp, #" MO_PARAM5 " + 16]\n"   // vr
@@ -649,7 +645,7 @@ void AudioResamplerOrder1::AsmStereo16Loop(int16_t *in, int32_t* maxOutPt, int32
         "   ldr r8, [sp, #" ST_PARAM5 " + 4]\n"     // out
         "   ldr r0, [sp, #" ST_PARAM5 " + 0]\n"     // &outputIndex
         "   ldr r0, [r0]\n"                         // outputIndex
-        "   add r8, r0, asl #2\n"                   // curOut
+        "   add r8, r8, r0, asl #2\n"               // curOut
         "   ldr r9, [sp, #" ST_PARAM5 " + 24]\n"    // phaseIncrement
         "   ldr r10, [sp, #" ST_PARAM5 " + 12]\n"   // vl
         "   ldr r11, [sp, #" ST_PARAM5 " + 16]\n"   // vr

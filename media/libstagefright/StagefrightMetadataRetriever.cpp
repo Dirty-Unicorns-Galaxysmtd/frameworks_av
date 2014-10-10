@@ -149,15 +149,16 @@ static VideoFrame *extractVideoFrameWithCodecFlags(
     // Once all vendors support OMX_COLOR_FormatYUV420Planar, we can
     // remove this check and always set the decoder output color format
     // skip this check for software decoders
-#ifdef QCOM_HARDWARE
+#ifndef QCOM_HARDWARE
+    if (isYUV420PlanarSupported(client, trackMeta)) {
+        format->setInt32(kKeyColorFormat, OMX_COLOR_FormatYUV420Planar);
+#else
     if (!(flags & OMXCodec::kSoftwareCodecsOnly)) {
-#endif
         if (isYUV420PlanarSupported(client, trackMeta)) {
             format->setInt32(kKeyColorFormat, OMX_COLOR_FormatYUV420Planar);
         }
-#ifdef QCOM_HARDWARE
-    }
 #endif
+    }
 
     sp<MediaSource> decoder =
         OMXCodec::Create(
@@ -389,10 +390,10 @@ VideoFrame *StagefrightMetadataRetriever::getFrameAtTime(
 
     VideoFrame *frame =
         extractVideoFrameWithCodecFlags(
-#ifdef QCOM_HARDWARE
-                &mClient, trackMeta, source, OMXCodec::kSoftwareCodecsOnly,
-#else
+#ifndef QCOM_HARDWARE
                 &mClient, trackMeta, source, OMXCodec::kPreferSoftwareCodecs,
+#else
+                &mClient, trackMeta, source, OMXCodec::kSoftwareCodecsOnly,
 #endif
                 timeUs, option);
 
@@ -541,9 +542,13 @@ void StagefrightMetadataRetriever::parseMetaData() {
                 }
             } else if (!strcasecmp(mime, MEDIA_MIMETYPE_TEXT_3GPP)) {
                 const char *lang;
-                trackMeta->findCString(kKeyMediaLanguage, &lang);
-                timedTextLang.append(String8(lang));
-                timedTextLang.append(String8(":"));
+                bool success = trackMeta->findCString(kKeyMediaLanguage, &lang);
+                if (success) {
+                    timedTextLang.append(String8(lang));
+                    timedTextLang.append(String8(":"));
+                } else {
+                    ALOGE("No language found for timed text");
+                }
             }
         }
     }

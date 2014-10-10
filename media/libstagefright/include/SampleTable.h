@@ -65,7 +65,7 @@ public:
             uint32_t sampleIndex,
             off64_t *offset,
             size_t *size,
-            uint32_t *compositionTime,
+            uint64_t *compositionTime,
             bool *isSyncSample = NULL);
 
     enum {
@@ -74,7 +74,8 @@ public:
         kFlagClosest
     };
     status_t findSampleAtTime(
-            uint32_t req_time, uint32_t *sample_index, uint32_t flags);
+            uint64_t req_time, uint64_t scale_num, uint64_t scale_den,
+            uint32_t *sample_index, uint32_t flags);
 
     status_t findSyncSampleNear(
             uint32_t start_sample_index, uint32_t *sample_index,
@@ -113,7 +114,7 @@ private:
 
     struct SampleTimeEntry {
         uint32_t mSampleIndex;
-        uint32_t mCompositionTime;
+        uint64_t mCompositionTime;
     };
     SampleTimeEntry *mSampleTimeEntries;
 
@@ -136,6 +137,13 @@ private:
     SampleToChunkEntry *mSampleToChunkEntries;
 
     friend struct SampleIterator;
+
+    // normally we don't round
+    inline uint64_t getSampleTime(
+            size_t sample_index, uint64_t scale_num, uint64_t scale_den) const {
+        return (mSampleTimeEntries[sample_index].mCompositionTime
+            * scale_num) / scale_den;
+    }
 
     status_t getSampleSize_l(uint32_t sample_index, size_t *sample_size);
     uint32_t getCompositionTimeOffset(uint32_t sampleIndex);

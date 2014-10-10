@@ -395,7 +395,7 @@ protected:
     virtual     bool        waitingAsyncCallback();
     virtual     bool        waitingAsyncCallback_l();
     virtual     bool        shouldStandby_l();
-
+    virtual     void        onAddNewTrack_l();
 
     // ThreadBase virtuals
     virtual     void        preExit();
@@ -411,7 +411,7 @@ public:
 
                 void        setMasterVolume(float value);
                 void        setMasterMute(bool muted);
-
+                void        setPostPro();
                 void        setStreamVolume(audio_stream_type_t stream, float value);
                 void        setStreamMute(audio_stream_type_t stream, bool muted);
 
@@ -469,7 +469,8 @@ public:
                 virtual bool     isValidSyncEvent(const sp<SyncEvent>& event) const;
 
                 // called with AudioFlinger lock held
-                        void     invalidateTracks(audio_stream_type_t streamType);
+       void     invalidateTracks(audio_stream_type_t streamType);
+       virtual  void onFatalError();
 
     virtual     size_t      frameCount() const { return mNormalFrameCount; }
 
@@ -542,6 +543,7 @@ private:
     bool        destroyTrack_l(const sp<Track>& track);
     void        removeTrack_l(const sp<Track>& track);
     void        broadcast_l();
+    void        invalidateTracks_l(audio_stream_type_t streamType);
 
     void        readOutputParameters();
 
@@ -638,7 +640,6 @@ public:
 protected:
                 // accessed by both binder threads and within threadLoop(), lock on mutex needed
                 unsigned    mFastTrackAvailMask;    // bit i set if fast track [i] is available
-    virtual     void        flushOutput_l();
 
 private:
     // timestamp latch:
@@ -746,22 +747,28 @@ public:
     virtual     bool        hasFastMixer() const { return false; }
 };
 
-class OffloadThread : public DirectOutputThread {
+class OffloadThread : public DirectOutputThread
+#ifdef ENABLE_RESAMPLER_IN_PCM_OFFLOAD_PATH
+, public AudioBufferProvider
+// derives from AudioBufferProvider interface for use by resampler
+#endif
+{
 public:
 
     OffloadThread(const sp<AudioFlinger>& audioFlinger, AudioStreamOut* output,
                         audio_io_handle_t id, uint32_t device);
-    virtual                 ~OffloadThread() {};
+    virtual                 ~OffloadThread();
 
 protected:
     // threadLoop snippets
     virtual     mixer_state prepareTracks_l(Vector< sp<Track> > *tracksToRemove);
     virtual     void        threadLoop_exit();
-    virtual     void        flushOutput_l();
 
     virtual     bool        waitingAsyncCallback();
     virtual     bool        waitingAsyncCallback_l();
     virtual     bool        shouldStandby_l();
+    virtual     void        onAddNewTrack_l();
+    virtual     void        onFatalError();
 
 private:
                 void        flushHw_l();
@@ -772,6 +779,36 @@ private:
     size_t      mPausedWriteLength;     // length in bytes of write interrupted by pause
     size_t      mPausedBytesRemaining;  // bytes still waiting in mixbuffer after resume
     wp<Track>   mPreviousTrack;         // used to detect track switch
+
+#ifdef ENABLE_RESAMPLER_IN_PCM_OFFLOAD_PATH
+
+public:
+    // AudioBufferProvider interface
+    virtual     status_t    getNextBuffer(AudioBufferProvider::Buffer* buffer, int64_t pts);
+    virtual     void        releaseBuffer(AudioBufferProvider::Buffer* buffer);
+
+protected:
+    virtual     void        threadLoop_mix();
+
+private:
+
+    // new resampler
+    AudioResampler*   mResampler;
+    uint32_t          mInitialSampleRate; // sample rate at the time of track creation
+    uint32_t          mCurrentSampleRate; // current sample rate
+    uint32_t          mInitChanelCount;   // initial channel count
+    uint32_t          mRsmpIPFormat;      // resampler bit depth
+    size_t            mRsmpFrmCnt;        // no. of o\p resampled frames
+    int32_t           mRsmpFrmFactor;     // conversion factor b\w resampler frame size vs track frame size
+    int32_t          *mRsmpOutBuffer;     // buffer where resampler will dump resampled frames
+    int16_t          *mRsmpInBuffer;      // buffer to collect i\p PCM data to be passed to resampler
+    size_t            mRsmpInIndex;       // index from where next i\p PCM data will be passed to resampler
+    int32_t           mRsmpInFrmRdy;      // total no. of frames ready to be passed to reasmpler
+
+    void              resample(int32_t* out,size_t outFrameCount,AudioBufferProvider* bufferProvider);
+    void              checkReSamplerConfigAndResetIfNeeded();
+
+#endif
 };
 
 class AsyncCallbackThread : public Thread {

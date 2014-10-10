@@ -69,7 +69,7 @@ using namespace android;
 
 static const uint32_t kMinBitRate = 100000;         // 0.1Mbps
 static const uint32_t kMaxBitRate = 100 * 1000000;  // 100Mbps
-static const uint32_t kMaxTimeLimitSec = 30*60;     // 30 minutes
+static const uint32_t kMaxTimeLimitSec = 3600;       // 1 Hour
 static const uint32_t kFallbackWidth = 1280;        // 720p
 static const uint32_t kFallbackHeight = 720;
 
@@ -722,8 +722,11 @@ static status_t recordScreen(const char* fileName) {
     // Main encoder loop.
     err = runEncoder(encoder, audioEncoder, audioSource, audioEncoderInBuf, muxer);
     if (err != NO_ERROR) {
+        // If err occurs, make sure the mp4 file is ended correctly,
+        // In other words, sample table is written to the end of file.
+        encoder->stop();
+        muxer->stop();
         encoder->release();
-        encoder.clear();
 
         return err;
     }
